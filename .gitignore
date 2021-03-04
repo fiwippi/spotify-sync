@@ -1,0 +1,7 @@
+bin
+bin/**
+.env
+client.log
+server.log
+config.json
+spotify.db
