@@ -54,7 +54,7 @@ the argument fields for commands are separated by a comma:
 ```dotenv
 CREATE = Create a session
 JOIN = Join a session someone has created e.g. "join,username"
-EXIT/QUIT = Disconnect from the server and close the client
+EXIT/QUIT = Disconnect from the server
 DISCONNECT = Leave the session
 ID = Displays the ID of the current session
 MSG = Send a message to other users in the same session e.g. "msg,change the song?""`

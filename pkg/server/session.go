@@ -3,9 +3,9 @@ package server
 import (
 	"errors"
 	"fmt"
+	ws "github.com/fiwippi/spotify-sync/pkg/shared"
 	"github.com/zmb3/spotify"
 	"log"
-	ws "spotify-sync/pkg/shared"
 	"strings"
 	"time"
 )
@@ -14,6 +14,7 @@ import (
 
 // How often in seconds to make calls the spotify api to ensure host and client are synced
 var syncRefresh time.Duration
+
 // Map which maps usernames hosting the session to their respective session
 var sessions = make(map[string]*session)
 
@@ -63,10 +64,10 @@ func (s *session) sendUserUpdate() error {
 
 	for client := range s.clients {
 		// Send the user list
-		msg :=  &ws.Message{
-			Op:   "USERS",
-			Args: nil,
-			Body: users,
+		msg := &ws.Message{
+			Op:        "USERS",
+			Args:      nil,
+			Body:      users,
 			Timestamp: ws.CurrentTime(),
 		}
 
@@ -121,7 +122,7 @@ func (s *session) handleChannels() {
 				delete(s.clients, client)
 			}
 			_ = s.sendUserUpdate()
-		case text := <- s.broadcast:
+		case text := <-s.broadcast:
 			for client := range s.clients {
 				err := client.sendMsg(text)
 				if err != nil {
@@ -134,7 +135,7 @@ func (s *session) handleChannels() {
 
 // Syncs all clients in the session to have the
 // same spotify playback as the host
- func (s *session) handleSync() {
+func (s *session) handleSync() {
 	ticker := time.NewTicker(syncRefresh)
 	for {
 		select {
@@ -194,7 +195,7 @@ func (s *session) handleChannels() {
 						if clientState.Item != nil {
 							IDmatch = clientState.Item.ID == hostState.Item.ID
 						}
-						ProgressMatch := ws.Abs(clientState.Progress - currentHostTime) < 5000 // 5 second tolerance
+						ProgressMatch := ws.Abs(clientState.Progress-currentHostTime) < 5000 // 5 second tolerance
 
 						Log.Trace().Str("Host", s.host.name).Str("Client", client.name).
 							Bool("IDMatch", IDmatch).Bool("Progress Match", ProgressMatch).
@@ -213,7 +214,7 @@ func (s *session) handleChannels() {
 						if !IDmatch {
 							var opts = &spotify.PlayOptions{
 								PositionMs: currentHostTime,
-								URIs: []spotify.URI{hostState.Item.URI},
+								URIs:       []spotify.URI{hostState.Item.URI},
 							}
 
 							err = client.spotifyClient.PlayOpt(opts)

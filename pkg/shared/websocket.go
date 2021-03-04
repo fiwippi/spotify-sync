@@ -1,7 +1,7 @@
 package ws
 
 import (
-	sets "spotify-sync/pkg/set"
+	sets "github.com/fiwippi/spotify-sync/pkg/set"
 )
 
 // Set of all accepted opcodes

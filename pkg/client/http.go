@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	ws "github.com/fiwippi/spotify-sync/pkg/shared"
 	"net/http"
 	"net/url"
-	ws "spotify-sync/pkg/shared"
 )
 
 // Sends a http request to the server
@@ -16,7 +16,7 @@ func (c *Client) sendRequest(r *ws.Request, endpoint string) error {
 		return err
 	}
 
-	resp, err := http.Post((&url.URL{Scheme: "http", Host: c.url.Host}).String() + endpoint, "application/json", bytes.NewBuffer(payload))
+	resp, err := http.Post((&url.URL{Scheme: "http", Host: c.url.Host}).String()+endpoint, "application/json", bytes.NewBuffer(payload))
 	if err != nil {
 		return err
 	}
@@ -36,15 +36,15 @@ func (c *Client) sendRequest(r *ws.Request, endpoint string) error {
 
 // Request wrapper to create a user
 func (c *Client) createUser(name, pass, sK, aK string) error {
-	return c.sendRequest(&ws.Request{NewName: name, NewPassword: pass, ServerKey: sK, AdminKey: aK,}, "/create-user")
+	return c.sendRequest(&ws.Request{NewName: name, NewPassword: pass, ServerKey: sK, AdminKey: aK}, "/create-user")
 }
 
 // Request wrapper to delete a user
-func (c *Client) deleteUser(name, aK string)  error {
-	return c.sendRequest(&ws.Request{CurrentName: name, AdminKey: aK,}, "/delete-user")
+func (c *Client) deleteUser(name, aK string) error {
+	return c.sendRequest(&ws.Request{CurrentName: name, AdminKey: aK}, "/delete-user")
 }
 
 // Request wrapper to update a user's details, i.e. change their name or password
-func (c *Client) updateUser(name, newname, pass, aK string)  error {
-	return c.sendRequest(&ws.Request{CurrentName: name, NewName: newname, NewPassword: pass, AdminKey: aK,}, "/update-user")
+func (c *Client) updateUser(name, newname, pass, aK string) error {
+	return c.sendRequest(&ws.Request{CurrentName: name, NewName: newname, NewPassword: pass, AdminKey: aK}, "/update-user")
 }

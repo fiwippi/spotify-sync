@@ -3,7 +3,7 @@ package client
 import (
 	"errors"
 	"fmt"
-	ws "spotify-sync/pkg/shared"
+	ws "github.com/fiwippi/spotify-sync/pkg/shared"
 	"strings"
 )
 
@@ -111,9 +111,9 @@ func (c *Client) buildMsg(sections []string) (ws.Message, error) {
 
 	// Builds the message
 	msg := ws.Message{
-		Op:   op,
-		Args: nil,
-		Body: strings.Join(sections[1:], ","),
+		Op:        op,
+		Args:      nil,
+		Body:      strings.Join(sections[1:], ","),
 		Timestamp: ws.CurrentTime(),
 	}
 

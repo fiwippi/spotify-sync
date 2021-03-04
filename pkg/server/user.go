@@ -3,12 +3,12 @@ package server
 import (
 	"encoding/json"
 	"errors"
+	sets "github.com/fiwippi/spotify-sync/pkg/set"
+	ws "github.com/fiwippi/spotify-sync/pkg/shared"
 	"github.com/gorilla/websocket"
 	"github.com/zmb3/spotify"
 	"golang.org/x/oauth2"
 	"net/http"
-	sets "spotify-sync/pkg/set"
-	ws "spotify-sync/pkg/shared"
 	"strings"
 	"sync"
 	"time"
@@ -16,11 +16,14 @@ import (
 
 // Set to hold the connected usernames, (not the user object)
 var ids = sets.NewSet()
+
 // Keeps track of all the connected users (the user objects)
 var connectedUsers = make(map[*user]bool)
+
 // Channel used to send the spotify.Client created in the SpotifyCallback route
 // which is then sent to the user handshake where it is assigned to the user
 var clientChans = make(map[string]chan spotify.Client, 1)
+
 // Channel used to send the oauth2.Token created in the SpotifyCallback route
 // which is then sent to the user handshake where it is assigned to the user
 var tokenChans = make(map[string]chan *oauth2.Token, 1)
@@ -78,9 +81,9 @@ func (u *user) disconnect() {
 		// If the user is hosting a session then close the session, otherwise remove them from the members
 		if u.s.host == u {
 			u.s.close()
-			_, ok := sessions[u.name];
+			_, ok := sessions[u.name]
 			if ok {
-				delete(sessions, u.name);
+				delete(sessions, u.name)
 			}
 		} else {
 			//log.Printf("%+v unregistering %+v", u.s, u)
@@ -106,10 +109,10 @@ func (u *user) disconnect() {
 // Performs the handshake procedure
 func (u *user) handshake() error {
 	// Ask the user to send login credentials
-	msg :=  &ws.Message{
-		Op:   "LOGIN",
-		Args: nil,
-		Body: "",
+	msg := &ws.Message{
+		Op:        "LOGIN",
+		Args:      nil,
+		Body:      "",
 		Timestamp: ws.CurrentTime(),
 	}
 	err := u.WriteJSON(msg)
@@ -125,13 +128,13 @@ func (u *user) handshake() error {
 		errChan <- err
 	}()
 	select {
-	case err = <- errChan:
+	case err = <-errChan:
 		reply := strings.Split(msg.Body, ",")
 		if len(reply) != 2 {
 			return errors.New("No username or password")
 		}
 		username, password = reply[0], reply[1]
-	case <- time.After(1 * time.Minute):
+	case <-time.After(1 * time.Minute):
 		close(errChan)
 		return errors.New("Timeout for authorising access to account (client)")
 	}
@@ -168,10 +171,10 @@ func (u *user) handshake() error {
 		tokenChans[u.name] = make(chan *oauth2.Token, 1)
 
 		// Tell user to authenticate via auth URL sent to them
-		msg =  &ws.Message{
-			Op:   "AUTH",
-			Args: nil,
-			Body: auth.AuthURL(u.name),
+		msg = &ws.Message{
+			Op:        "AUTH",
+			Args:      nil,
+			Body:      auth.AuthURL(u.name),
 			Timestamp: ws.CurrentTime(),
 		}
 		err = u.WriteJSON(msg)
@@ -181,9 +184,9 @@ func (u *user) handshake() error {
 
 		// First we receive the token from the spotify callback function
 		select {
-		case t := <- tokenChans[u.name]:
+		case t := <-tokenChans[u.name]:
 			u.token = t
-		case <- time.After(5 * time.Minute):
+		case <-time.After(5 * time.Minute):
 			return errors.New("Timeout for authorising access to account (client)")
 		}
 
@@ -191,7 +194,7 @@ func (u *user) handshake() error {
 		select {
 		case sc := <-clientChans[u.name]:
 			u.spotifyClient = sc
-		case <- time.After(5 * time.Second):
+		case <-time.After(5 * time.Second):
 			return errors.New("Timeout for authorising access to account (token)")
 		}
 
@@ -244,10 +247,10 @@ func (u *user) readPump() {
 
 // Tells the user client to refresh all users
 func (u *user) clearUserList() {
-	msg :=  &ws.Message{
-		Op:   "USERS",
-		Args: nil,
-		Body: "",
+	msg := &ws.Message{
+		Op:        "USERS",
+		Args:      nil,
+		Body:      "",
 		Timestamp: ws.CurrentTime(),
 	}
 
@@ -302,13 +305,13 @@ func (u *user) WriteJSON(m *ws.Message) error {
 
 // Sends an INFO message to the user (message from server)
 func (u *user) sendInfo(text string) error {
-	msg :=  &ws.Message{
-		Op:   "INFO",
-		Args: nil,
-		Body: text,
+	msg := &ws.Message{
+		Op:        "INFO",
+		Args:      nil,
+		Body:      text,
 		Timestamp: ws.CurrentTime(),
 	}
-	
+
 	err := u.WriteJSON(msg)
 	if err != nil {
 		return err
@@ -318,10 +321,10 @@ func (u *user) sendInfo(text string) error {
 
 // Sends a MSG message to the user (message from other clients)
 func (u *user) sendMsg(text string) error {
-	msg :=  &ws.Message{
-		Op:   "MSG",
-		Args: []string{u.name},
-		Body: text,
+	msg := &ws.Message{
+		Op:        "MSG",
+		Args:      []string{u.name},
+		Body:      text,
 		Timestamp: ws.CurrentTime(),
 	}
 

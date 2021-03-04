@@ -3,7 +3,7 @@ package client
 import (
 	"fmt"
 	"github.com/atotto/clipboard"
-	ws "spotify-sync/pkg/shared"
+	ws "github.com/fiwippi/spotify-sync/pkg/shared"
 	"strings"
 )
 
