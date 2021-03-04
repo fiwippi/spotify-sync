@@ -41,7 +41,10 @@ PORT=8096
 ```
 **Additionally**, inside the spotify developer portal for your application, you should add your domain route followed
 by `/spotify-callback` as a valid callback URL, for example: `localhost:8096/spotify-callback`. This is used by the
-server to create a spotify client which can control the user playback. 
+server to create a spotify client which can control the user playback.
+
+To see the data stored within the database the `spotify_sync_view` binary should be used, it should be in the same 
+directory as the created `spotify.db` file. The db file can only be used by one program at once so the server should not run at the same time. 
 
 ### Clients
 Clients can perform certain operations by typing in the chat box provided after they connect to the server,
