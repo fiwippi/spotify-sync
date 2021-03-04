@@ -1,4 +1,4 @@
-module spotify-sync
+module github.com/fiwippi/spotify-sync
 
 go 1.14
 
