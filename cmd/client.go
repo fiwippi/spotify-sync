@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/fiwippi/spotify-sync/pkg/client"
 	"log"
-	"spotify-sync/pkg/client"
 )
 
 func main() {

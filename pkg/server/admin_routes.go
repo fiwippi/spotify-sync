@@ -1,9 +1,9 @@
 package server
 
 import (
+	ws "github.com/fiwippi/spotify-sync/pkg/shared"
 	"github.com/gin-gonic/gin"
 	"log"
-	ws "spotify-sync/pkg/shared"
 )
 
 // These are all router routes for providing admin functionality

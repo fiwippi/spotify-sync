@@ -2,17 +2,17 @@ package server
 
 import (
 	"errors"
-	ws "spotify-sync/pkg/shared"
+	ws "github.com/fiwippi/spotify-sync/pkg/shared"
 	"strings"
 )
 
 var helpMsg = `###### HELP ######
-CREATE - Create a session
-JOIN - join a session someone has created e.g. "join,username"
-EXIT/QUIT - disconnect from the server and close the client
-DISCONNECT - leave the session
-ID - displays the ID of the current session
-MSG - send a message to other users in the same session e.g. "msg,change the song?""`
+CREATE = Create a session
+JOIN = Join a session someone has created e.g. "join,username"
+EXIT/QUIT = Disconnect from the server
+DISCONNECT = Leave the session
+ID = Displays the ID of the current session
+MSG = Send a message to other users in the same session e.g. "msg,change the song?""`
 
 // Sends a help message to the user
 func (u *user) cmdHelp(m *ws.Message) error {
@@ -113,9 +113,9 @@ func (u *user) cmdDisconnect(m *ws.Message) error {
 		if isHost {
 			u.s.close()
 			u.s = nil
-			_, ok := sessions[u.name];
+			_, ok := sessions[u.name]
 			if ok {
-				delete(sessions, u.name);
+				delete(sessions, u.name)
 			}
 		} else {
 			u.s.unregister <- u
@@ -127,8 +127,6 @@ func (u *user) cmdDisconnect(m *ws.Message) error {
 	} else {
 		text = "Not in a session"
 	}
-
-
 
 	// Notify of success or fail
 	err := u.sendInfo(text)

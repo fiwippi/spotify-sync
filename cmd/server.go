@@ -1,10 +1,10 @@
 package main
 
 import (
+	"github.com/fiwippi/spotify-sync/pkg/server"
 	"github.com/joho/godotenv"
 	"log"
 	"os"
-	"spotify-sync/pkg/server"
 	"strings"
 	"time"
 )
