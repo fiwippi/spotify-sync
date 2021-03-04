@@ -15,7 +15,6 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/rivo/tview v0.0.0-20210125085121-dbc1f32bb1d0
-	github.com/rs/xid v1.2.1
 	github.com/rs/zerolog v1.20.0
 	github.com/ugorji/go v1.2.3 // indirect
 	github.com/zmb3/spotify v1.1.0
