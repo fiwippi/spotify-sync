@@ -2,6 +2,8 @@
 ## Overview [![GoDoc](https://godoc.org/github.com/fiwippi/spotify-sync?status.svg)](https://godoc.org/github.com/fiwippi/spotify-sync)
 A terminal interface server and client combo which syncs the spotify playback of multiple clients towards a singular host
 
+Note: This only works for **Spotify Premium** users due to API limitations
+
 ## Install
 ```
 go get github.com/fiwippi/spotify-sync
