@@ -9,8 +9,13 @@ var Log zerolog.Logger
 
 // Creates the server logger
 func createLogger() (zerolog.Logger, error) {
+	// Create the data dir
+	if _, err := os.Stat("data"); os.IsNotExist(err) {
+		os.Mkdir("data", os.ModeDir)
+	}
+
 	// Creates a file for writing logs to
-	logFile, err := os.OpenFile("server.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
+	logFile, err := os.OpenFile("data/server.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0777)
 	if err != nil {
 		return zerolog.Logger{}, err
 	}

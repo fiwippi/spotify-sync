@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	sets "github.com/fiwippi/spotify-sync/pkg/set"
 	ws "github.com/fiwippi/spotify-sync/pkg/shared"
 	"github.com/gorilla/websocket"
@@ -109,6 +110,7 @@ func (u *user) disconnect() {
 // Performs the handshake procedure
 func (u *user) handshake() error {
 	// Ask the user to send login credentials
+	Log.Trace().Msg("Performing handshake")
 	msg := &ws.Message{
 		Op:        "LOGIN",
 		Args:      nil,
@@ -119,6 +121,7 @@ func (u *user) handshake() error {
 	if err != nil {
 		return err
 	}
+	Log.Trace().Msg("Sent LOGIN opcode")
 
 	// Read the username and password
 	var username, password string
@@ -134,6 +137,7 @@ func (u *user) handshake() error {
 			return errors.New("No username or password")
 		}
 		username, password = reply[0], reply[1]
+		Log.Trace().Str("username", username).Str("password", password).Msg("Retrieved username, password")
 	case <-time.After(1 * time.Minute):
 		close(errChan)
 		return errors.New("Timeout for authorising access to account (client)")
@@ -147,6 +151,7 @@ func (u *user) handshake() error {
 	if e.Password != ws.HashPassword(password) {
 		return errors.New("Password incorrect")
 	}
+	Log.Trace().Str("user", fmt.Sprintf("%+v", e)).Msg("Password verified")
 
 	// Disconnect if user is already connected
 	u.name = username
@@ -155,9 +160,10 @@ func (u *user) handshake() error {
 	}
 	ids.Add(u.name)
 	connectedUsers[u] = true
+	Log.Trace().Msg("User not already connected")
 
 	// Try and recreate client
-	if e.Token != "" {
+	if e.Token != "" && e.Token != "null" {
 		var tkn *oauth2.Token
 		err := json.Unmarshal([]byte(e.Token), &tkn)
 		if err != nil {
@@ -166,11 +172,13 @@ func (u *user) handshake() error {
 
 		u.token = tkn
 		u.spotifyClient = auth.NewClient(u.token)
+		Log.Trace().Msg("Recreated token from db")
 	} else {
 		clientChans[u.name] = make(chan spotify.Client, 1)
 		tokenChans[u.name] = make(chan *oauth2.Token, 1)
 
 		// Tell user to authenticate via auth URL sent to them
+		Log.Trace().Msg("Sending AUTH message")
 		msg = &ws.Message{
 			Op:        "AUTH",
 			Args:      nil,
@@ -185,6 +193,7 @@ func (u *user) handshake() error {
 		// First we receive the token from the spotify callback function
 		select {
 		case t := <-tokenChans[u.name]:
+			Log.Trace().Msg("Received spotify token")
 			u.token = t
 		case <-time.After(5 * time.Minute):
 			return errors.New("Timeout for authorising access to account (client)")
@@ -193,6 +202,7 @@ func (u *user) handshake() error {
 		// Second we receive the spotify client from the spotify callback function
 		select {
 		case sc := <-clientChans[u.name]:
+			Log.Trace().Msg("Received spotify client")
 			u.spotifyClient = sc
 		case <-time.After(5 * time.Second):
 			return errors.New("Timeout for authorising access to account (token)")
@@ -214,6 +224,7 @@ func (u *user) handshake() error {
 		if err != nil {
 			return errors.New("Failed saving token to db: " + err.Error())
 		}
+		Log.Trace().Msg("Entry saved to db")
 	}
 
 	// Inform user of successful handshake
@@ -294,6 +305,7 @@ func (u *user) processMsg(m ws.Message) error {
 func (u *user) WriteJSON(m *ws.Message) error {
 	if u.conn != nil {
 		u.mutex.Lock()
+		Log.Trace().Interface("msg", m).Msg("Sending Message")
 		err := u.conn.WriteJSON(m)
 		u.mutex.Unlock()
 		if err != nil {

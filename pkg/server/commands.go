@@ -6,7 +6,8 @@ import (
 	"strings"
 )
 
-var helpMsg = `###### HELP ######
+var helpMsg = `
+###### HELP ######
 CREATE = Create a session
 JOIN = Join a session someone has created e.g. "join,username"
 EXIT/QUIT = Disconnect from the server
@@ -32,6 +33,9 @@ func (u *user) cmdMsg(m *ws.Message) error {
 
 // Sends the session ID to the user if they're in one
 func (u *user) cmdID(m *ws.Message) error {
+	if u.s == nil {
+		return u.sendInfo("ID: N/A")
+	}
 	return u.sendInfo("ID: " + u.s.host.name)
 }
 

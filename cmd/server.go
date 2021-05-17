@@ -14,10 +14,7 @@ var id, secret, redirect, serverKey, adminKey, port string
 
 func init() {
 	// Load the env file
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatal(err)
-	}
+	godotenv.Load(".env")
 
 	// Get the spotify client variables and generate the url
 	id = os.Getenv("SPOTIFY_ID")
@@ -32,6 +29,11 @@ func init() {
 	adminKey = os.Getenv("ADMIN_KEY")
 	port = os.Getenv("PORT")
 	refresh, _ = time.ParseDuration(os.Getenv("SYNC_REFRESH") + "s")
+
+	// If DOCKER then set port to 8096
+	if os.Getenv("DOCKER") == "true" {
+		port = "8096"
+	}
 }
 
 func main() {

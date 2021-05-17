@@ -23,7 +23,7 @@ func authGenerated() gin.HandlerFunc {
 		if authCreated {
 			c.Next()
 		} else {
-			c.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{"msg":"Cannot process requests currently"})
+			c.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{"msg": "Cannot process requests currently"})
 		}
 	}
 }
@@ -42,7 +42,7 @@ func setupServer(sK, aK, id, secret, redirect, port string) (*http.Server, error
 	serverKey, adminKey = sK, aK
 
 	// connect to the database
-	db, err = bolt.Open("spotify.db", 0666, nil)
+	db, err = bolt.Open("data/spotify.db", 0666, nil)
 	if err != nil {
 		return nil, err
 	}

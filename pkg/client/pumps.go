@@ -15,6 +15,7 @@ func (c *Client) readPump() {
 	for {
 		// Retrieve the ws.Message struct from the connection
 		err := c.conn.ReadJSON(&msg)
+		Log.Printf("Incoming Message: %+v\n", msg)
 		if err != nil {
 			// Error here means the connection is closed
 			Log.Println(fmt.Sprintf("read: %s", err.Error()))

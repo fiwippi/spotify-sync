@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+  spotify-server:
+    build: .
+    restart: always
+    volumes:
+      - ./data:/data:rw
+    ports:
+      - 8096:8096
+    env_file:
+      - .env

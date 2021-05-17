@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/zmb3/spotify"
 	"net/http"
 )
 
@@ -21,6 +22,8 @@ func processIncomingUserWebsocket(c *gin.Context) {
 		return
 	}
 
+	Log.Trace().Interface("user", u).Msg("user handshake")
+
 	// Perform the handshake to authenticate the user's spotify connection
 	err = u.handshake()
 	if err != nil {
@@ -30,6 +33,12 @@ func processIncomingUserWebsocket(c *gin.Context) {
 	}
 
 	// Generate spotify user data
+	if u.spotifyClient == (spotify.Client{}) {
+		Log.Debug().Err(err).Str("Username", u.name).Msg("User handshake not successful since no spotify client")
+		u.disconnect()
+		return
+	}
+
 	u.spotifyData, err = u.spotifyClient.CurrentUser()
 	if err != nil {
 		Log.Debug().Err(err).Str("Username", u.name).Msg("Cannot get user's spotify data")
@@ -44,7 +53,7 @@ func processIncomingUserWebsocket(c *gin.Context) {
 
 // When user's use the authentication url they are redirected to this
 // route where a spotify client to control their playback is created
-func spotifyCallback (c *gin.Context) {
+func spotifyCallback(c *gin.Context) {
 	// If state is incorrect then return 404
 	st := c.Query("state")
 	if !ids.Has(st) {

@@ -11,17 +11,15 @@ import (
 
 // Processes the AUTH opcode
 func (c *Client) cmdAuth(m *ws.Message) error {
-	// Copies the spotify oauth2 url to the clipboard
-	err := clipboard.WriteAll(m.Body)
-	if err != nil {
-		return err
-	}
+	// Copies the spotify oauth2 url to the clipboard if possible
+	go clipboard.WriteAll(m.Body)
 
 	// Writes the auth url to the chatlog
-	text := fmt.Sprintf("The authentication URL has been copied to the clipboard. Please authenticate the client through: %s\n", m.Body)
-	gCtx.chatlog.Write([]byte(fmt.Sprintf("[red]%s <SERVER> %s", m.Timestamp, text)))
+	text := fmt.Sprintf("The authentication URL should be copied to the clipboard, it might not be. Please authenticate the client through: %s\n", m.Body)
+	_, err := gCtx.chatlog.Write([]byte(fmt.Sprintf("[red]%s <SERVER> %s", m.Timestamp, text)))
+	Log.Println("Auth error: ", err)
 
-	return nil
+	return err
 }
 
 // Process the INFO opcode
