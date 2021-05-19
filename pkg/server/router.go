@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	bolt "go.etcd.io/bbolt"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -14,11 +15,8 @@ import (
 	"time"
 )
 
-// TODO add dashboard to manage server instead of admin routes
-
-// Server key allows users basic access to server functions, i.e. creating accounts
 // Admin key allows deeper access to server functions, i.e. deleting accounts, updating account data
-var serverKey, adminKey string
+var adminKey string
 
 // Middleware to ensure an authenticator has been generated
 func authGenerated() gin.HandlerFunc {
@@ -32,7 +30,7 @@ func authGenerated() gin.HandlerFunc {
 }
 
 // Creates the server object
-func setupServer(sK, aK, id, secret, redirect, port, logLevel string) (*http.Server, error) {
+func setupServer(aK, id, secret, redirect, port, logLevel string) (*http.Server, error) {
 	var err error
 
 	// Create the logger
@@ -41,8 +39,8 @@ func setupServer(sK, aK, id, secret, redirect, port, logLevel string) (*http.Ser
 		return nil, err
 	}
 
-	// Set the server and admin key
-	serverKey, adminKey = sK, aK
+	// Set the admin key
+	adminKey = aK
 
 	// connect to the database
 	db, err = bolt.Open("data/spotify.db", 0666, nil)
@@ -65,11 +63,23 @@ func setupServer(sK, aK, id, secret, redirect, port, logLevel string) (*http.Ser
 	// Generate the router
 	router := gin.Default() // Default router  includes logging and recovery middleware
 	router.Use(authGenerated())
+
+	// Setup templating
+	tmpl, err := template.ParseFS(efs, "static/admin.tmpl")
+	if err != nil {
+		return nil, err
+	}
+	router.SetHTMLTemplate(tmpl)
+
+	// Add routes
+	router.GET("/admin", admin)
+	router.GET("/favicon.ico", favicon)
 	router.GET("/spotify-callback", spotifyCallback)
 	router.GET("/shared", processIncomingUserWebsocket)
-	router.POST("/create-user", createUser)
-	router.POST("/delete-user", deleteUser)
-	router.POST("/update-user", updateUser)
+	router.POST("/api/create-user", createUser)
+	router.POST("/api/delete-user", deleteUser)
+	router.POST("/api/update-user", updateUser)
+	router.POST("/api/view-db", viewDB)
 
 	// Generate the spotify auth object
 	err = generateAuth(id, secret, redirect)
@@ -101,7 +111,7 @@ func setupServer(sK, aK, id, secret, redirect, port, logLevel string) (*http.Ser
 }
 
 // Run a server
-func Run(sK, aK, id, secret, redirect, port, mode, logLevel string, refresh time.Duration) error {
+func Run(aK, id, secret, redirect, port, mode, logLevel string, refresh time.Duration) error {
 	// Set the refresh
 	syncRefresh = refresh
 
@@ -111,7 +121,7 @@ func Run(sK, aK, id, secret, redirect, port, mode, logLevel string, refresh time
 	gin.SetMode(mode)
 
 	// Create the server
-	srv, err := setupServer(sK, aK, id, secret, redirect, port, logLevel)
+	srv, err := setupServer(aK, id, secret, redirect, port, logLevel)
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,6 @@
 module github.com/fiwippi/spotify-sync
 
-go 1.14
+go 1.16
 
 require (
 	github.com/atotto/clipboard v0.1.2

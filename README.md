@@ -41,14 +41,6 @@ SPOTIFY_SECRET=abcdefghijklmnopqrstuvwxyz123456
 # a lower value increases the risk of rate limiting being applied 
 SYNC_REFRESH=10
 
-## Server Keys
-# The "Server Key" is given to users so that they can create their own 
-# account
-SERVER_KEY=abcdefghijklmnopqrstuvwxyz123456
-# The "Admin Key" should be kept solely by the server owner, this is used
-# to edit user data and delete users
-ADMIN_KEY=abcdefghijklmnopqrstuvwxyz123456
-
 ## Server Setup
 # This should be the domain which the server operates on, if needed then
 # port numbers should also be specified, e.g. if you used port forwarding
@@ -62,12 +54,15 @@ PORT=8096
 SERVER_MODE=debug
 # What level to log at 
 SERVER_LOG_LEVEL=trace
+# The "Admin Key" should be kept solely by the server owner, this is used
+# to edit user data and create and delete users, accesible at /admin
+ADMIN_KEY=abcdefghijklmnopqrstuvwxyz123456
 ```
 **Additionally**, inside the spotify developer portal for your application, you should add your domain route followed
 by `/spotify-callback` as a valid callback URL, for example: `localhost:8096/spotify-callback`. This is used by the
 server to create a spotify client which can control the user playback.
 
-To see the data stored within the database run `spotify_sync view`. The db file can only be used by one program at once so the server should not run at the same time.
+To see the data stored within the database run `spotify_sync view`. The db file can only be used by one program at once so the server should not run at the same time. Alternatively the server provides the `/admin` route to access the admin functionality and the ability to view the database.
 
 ### Clients
 Clients can perform certain operations by typing in the chat box provided after they connect to the server,

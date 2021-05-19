@@ -95,15 +95,13 @@ func (c *Client) createGUI() *tview.Application {
 
 	// The login page
 	var address string
-	var username, newname string
+	var username string
 	var password string
-	var sK, aK string
 
 	form := tview.NewForm().
 		AddInputField("Username:", "", 20, nil, func(text string) { username = text; details.Username = text }).
 		AddInputField("Password:", "", 20, nil, func(text string) { password = text; details.Password = password }).
 		AddInputField("Address:", "", 20, nil, func(text string) { address = text; details.Address = text; c.changeAddress(address) }).
-		AddInputField("Server Key:", "", 20, nil, func(text string) { sK = text; details.ServerKey = sK }).
 		AddCheckbox("Use SSL:", true, func(checked bool) {
 			useSSL = checked
 			if checked {
@@ -113,7 +111,6 @@ func (c *Client) createGUI() *tview.Application {
 			}
 			c.changeAddress(address)
 		})
-	form.GetFormItemByLabel("Server Key:").(*tview.InputField).SetMaskCharacter('*')
 	form.GetFormItemByLabel("Password:").(*tview.InputField).SetMaskCharacter('*')
 	form.SetBorder(true)
 
@@ -130,10 +127,6 @@ func (c *Client) createGUI() *tview.Application {
 	inputField = form.GetFormItemByLabel("Address:").(*tview.InputField)
 	if details.Address != "" {
 		inputField.SetText(details.Address)
-	}
-	inputField = form.GetFormItemByLabel("Server Key:").(*tview.InputField)
-	if details.ServerKey != "" {
-		inputField.SetText(details.ServerKey)
 	}
 	inputCheckbox := form.GetFormItemByLabel("Use SSL:").(*tview.Checkbox)
 	if details.UseSSL == "false" {
@@ -184,23 +177,6 @@ func (c *Client) createGUI() *tview.Application {
 		}
 	})
 
-	// Button for creating an account in the server
-	form.AddButton("Create Account", func() {
-		var err error
-
-		err = c.createUser(username, password, sK, aK)
-		if err != nil {
-			pages.SwitchToPage("requestFailed")
-		} else {
-			pages.SwitchToPage("requestSucceded")
-		}
-	})
-
-	// Button for creating an account in the server
-	form.AddButton("Admin", func() {
-		pages.SwitchToPage("admin")
-	})
-
 	// Button for quitting the app
 	form.AddButton("Quit", func() {
 		// Save the config when quitting
@@ -212,62 +188,8 @@ func (c *Client) createGUI() *tview.Application {
 		app.Stop()
 	})
 
-	// Screen for admin functionality
-	adminForm := tview.NewForm().
-		AddInputField("Current Name:", "", 20, nil, func(text string) { username = text; details.Username = text }).
-		AddInputField("New Password (if applicable):", "", 20, nil, func(text string) { password = text; details.Password = password }).
-		AddInputField("New Name (if applicable):", "", 20, nil, func(text string) { newname = text }).
-		AddInputField("Admin Key:", "", 20, nil, func(text string) { aK = text; details.AdminKey = aK }).
-		AddInputField("Address:", "", 20, nil, func(text string) { address = text; details.Address = text; c.changeAddress(address) })
-	adminForm.GetFormItemByLabel("Admin Key:").(*tview.InputField).SetMaskCharacter('*')
-	adminForm.GetFormItemByLabel("New Password (if applicable):").(*tview.InputField).SetMaskCharacter('*')
-	adminForm.SetBorder(true)
-
-	inputField = adminForm.GetFormItemByLabel("Current Name:").(*tview.InputField)
-	if details.Username != "" {
-		inputField.SetText(details.Username)
-	}
-	inputField = adminForm.GetFormItemByLabel("Address:").(*tview.InputField)
-	if details.Address != "" {
-		inputField.SetText(details.Address)
-	}
-	inputField = adminForm.GetFormItemByLabel("Admin Key:").(*tview.InputField)
-	if details.AdminKey != "" {
-		inputField.SetText(details.AdminKey)
-	}
-
-	// Button for going back to the login page
-	adminForm.AddButton("Go Back", func() {
-		pages.SwitchToPage("login")
-	})
-
-	// Button for updating account details
-	adminForm.AddButton("Update Account", func() {
-		var err error
-
-		err = c.updateUser(username, newname, password, aK)
-		if err != nil {
-			pages.SwitchToPage("requestFailed")
-		} else {
-			pages.SwitchToPage("requestSucceded")
-		}
-	})
-
-	// Button for deleting an account in the server
-	adminForm.AddButton("Delete Account", func() {
-		var err error
-
-		err = c.deleteUser(username, aK)
-		if err != nil {
-			pages.SwitchToPage("requestFailed")
-		} else {
-			pages.SwitchToPage("requestSucceded")
-		}
-	})
-
 	// Add each page to the pages object to enable switching to different screens
 	pages.AddPage("login", form, true, true)
-	pages.AddPage("admin", adminForm, true, false)
 	pages.AddPage("spotify", grid, true, false)
 	pages.AddPage("badConnection", badConnectionModal, true, false)
 	pages.AddPage("requestFailed", requestFailedModal, true, false)

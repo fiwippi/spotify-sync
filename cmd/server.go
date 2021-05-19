@@ -53,7 +53,6 @@ var serverCmd = &cobra.Command{
 		secret = os.Getenv("SPOTIFY_SECRET")
 
 		// Get server secrets
-		serverKey = os.Getenv("SERVER_KEY")
 		adminKey = os.Getenv("ADMIN_KEY")
 
 		// Load the rest
@@ -108,6 +107,6 @@ var serverCmd = &cobra.Command{
 		}
 
 		fmt.Printf("Server running with config:\nredirect - %s\nport - %s\nrefresh - %s\nmode - %s\nlog level - %s\n", redirect, port, refresh, mode, logLevel)
-		return server.Run(serverKey, adminKey, id, secret, redirect, port, mode, logLevel, refresh)
+		return server.Run(adminKey, id, secret, redirect, port, mode, logLevel, refresh)
 	},
 }

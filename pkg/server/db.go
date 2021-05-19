@@ -3,7 +3,9 @@ package server
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	bolt "go.etcd.io/bbolt"
+	"strings"
 )
 
 // The database
@@ -130,4 +132,36 @@ func dbViewUser(name string) (*entry, error) {
 		return nil, err
 	}
 	return &e, nil
+}
+
+// Prints out db as a string
+func dbViewAll() (string, error) {
+	var s string
+	err := db.View(func(tx *bolt.Tx) error {
+		c := tx.Cursor()
+		dumpCursor(tx, c, 0, &s)
+		return nil
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return s, nil
+}
+
+func dumpCursor(tx *bolt.Tx, c *bolt.Cursor, indent int, s *string) {
+	for k, v := c.First(); k != nil; k, v = c.Next() {
+		if v == nil {
+			*s += fmt.Sprintf(strings.Repeat("\t", indent)+"[%s]\n", k)
+			newBucket := c.Bucket().Bucket(k)
+			if newBucket == nil {
+				newBucket = tx.Bucket(k)
+			}
+			newCursor := newBucket.Cursor()
+			dumpCursor(tx, newCursor, indent+1, s)
+		} else {
+			*s += fmt.Sprintf(strings.Repeat("\t", indent)+"%s\n", k)
+			*s += fmt.Sprintf(strings.Repeat("\t", indent+1)+"%s\n", v)
+		}
+	}
 }

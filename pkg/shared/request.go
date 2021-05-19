@@ -5,7 +5,6 @@ type Request struct {
 	CurrentName string `json:"current_name"` // Name of the user to act upon
 	NewName     string `json:"new_name"`     // Name of new user or name to change username to
 	NewPassword string `json:"new_password"` // Password of new user or password to change user's pass to
-	ServerKey   string `json:"server_key"`   // Server key to authorise basic requests
 	AdminKey    string `json:"admin_key"`    // Server key to authorise privileged requests
 }
 

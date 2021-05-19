@@ -1,0 +1,128 @@
+<html>
+<head>
+    <style>
+        html {
+            background: wheat;
+        }
+
+        body {
+            font-size: 16px;
+            font-family: monospace;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 275px 150px;
+            grid-template-rows: auto auto auto;
+        }
+    </style>
+
+    <script>
+        function viewDB() {
+            let adminKey = document.getElementById("admin-key");
+            let dbResponsePar = document.getElementById("db-response");
+            let responsePar = document.getElementById("response");
+            dbResponsePar.innerHTML = "";
+            responsePar.innerHTML = "";
+
+            (async () => {
+                await fetch("/api/view-db", {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        admin_key: adminKey.value,
+                    })
+                }).then(res => {
+                    return res.json();
+                }).then(data => {
+                    console.log(data)
+                    if (data["success"] === true) {
+                        responsePar.innerHTML = "Status: Success"
+                        dbResponsePar.innerHTML = data["db"]
+                    } else {
+                        responsePar.innerHTML = "Status: Failed, " + data["error"]
+                    }
+                }).catch(error => {
+                    console.error('There has been a problem with your fetch operation:', error);
+                    responsePar.innerHTML = "Status: Failed"
+                });
+            })();
+        }
+
+        function postRequest(url) {
+            let currentName = document.getElementById("current-name");
+            let password = document.getElementById("password");
+            let newName = document.getElementById("new-name");
+            let adminKey = document.getElementById("admin-key");
+            let responsePar = document.getElementById("response");
+            responsePar.innerHTML = "";
+
+            (async () => {
+                await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        current_name: currentName.value,
+                        new_password: password.value,
+                        new_name: newName.value,
+                        admin_key: adminKey.value,
+                    })
+                }).then(res => {
+                    return res.json();
+                }).then(data => {
+                    if (data["success"] === true) {
+                        responsePar.innerHTML = "Status: Success"
+                    } else {
+                        responsePar.innerHTML = "Status: Failed, " + data["error"]
+                    }
+                }).catch(error => {
+                        console.error('There has been a problem with your fetch operation:', error);
+                        responsePar.innerHTML = "Status: Failed"
+                    });
+            })();
+        }
+
+        function wrapText() {
+            let checkBox = document.getElementById("wrap-check");
+            let dbText = document.getElementById("db-response")
+
+            if (checkBox.checked === true){
+                dbText.style.whiteSpace = "pre-wrap"
+            } else {
+                dbText.style.whiteSpace = "pre"
+            }
+        }
+    </script>
+</head>
+<body>
+        <h1>Spotify Sync Admin Dashboard</h1>
+        <h2>Key</h2>
+        <p>Admin Key: <input type=password id="admin-key"></p>
+        <p id="response" style="font-weight: bold"></p>
+
+        <h2>Users</h2>
+        <div class="grid-container">
+            <div>Current Name:</div>
+            <div><input type=text id="current-name"></div>
+            <div>New Name (if applicable):</div>
+            <div><input type=text id="new-name"></div>
+            <div>New Password (if applicable):</div>
+            <div><input type=password id="password"></div>
+        </div>
+        <p>
+            <button onclick="postRequest('/api/create-user')">Create Account</button>
+            <button onclick="postRequest('/api/update-user')">Update Account</button>
+            <button onclick="postRequest('/api/delete-user')">Delete Account</button>
+        </p>
+
+        <h2>DB</h2>
+        <p><button onclick="viewDB()">View DB</button> Wrap Text: <input type="checkbox" id="wrap-check" checked onclick="wrapText()"></p>
+        <pre id="db-response" style="font-weight: bold; white-space: pre-wrap;"></pre>
+</body>
+</html>
