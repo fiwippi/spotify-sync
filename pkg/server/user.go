@@ -7,6 +7,7 @@ import (
 	sets "github.com/fiwippi/spotify-sync/pkg/set"
 	ws "github.com/fiwippi/spotify-sync/pkg/shared"
 	"github.com/gorilla/websocket"
+	"github.com/rs/zerolog/log"
 	"github.com/zmb3/spotify"
 	"golang.org/x/oauth2"
 	"net/http"
@@ -61,6 +62,7 @@ func (u *user) upgrade() error {
 
 // Disconnects a user from the server
 func (u *user) disconnect() {
+	u.mutex.Lock() //  Ensures only one disconnect function runs at once and stops further reading from websocket
 	Log.Info().Str("Username", u.name).Msg("Disconnecting user")
 
 	// Stop keeping track of the user
@@ -103,7 +105,10 @@ func (u *user) disconnect() {
 		_ = u.sendInfo("Disconnection occurring")
 
 		// Close the shared connection
-		u.conn.Close()
+		err := u.conn.Close()
+		if err != nil {
+			log.Error().Err(err).Str("Username", u.name).Msg("Error closing websocket conn")
+		}
 	}
 }
 
@@ -287,6 +292,8 @@ func (u *user) processMsg(m ws.Message) error {
 		err = u.cmdJoin(&m)
 	case "DISCONNECT":
 		err = u.cmdDisconnect(&m)
+	case "QUIT":
+		u.disconnect()
 	case "MSG":
 		err = u.cmdMsg(&m)
 	case "HELP":

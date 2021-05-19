@@ -60,6 +60,8 @@ USE_SSL=true
 PORT=8096
 # Run the server in Gin debug or release mode
 SERVER_MODE=debug
+# What level to log at 
+SERVER_LOG_LEVEL=trace
 ```
 **Additionally**, inside the spotify developer portal for your application, you should add your domain route followed
 by `/spotify-callback` as a valid callback URL, for example: `localhost:8096/spotify-callback`. This is used by the
