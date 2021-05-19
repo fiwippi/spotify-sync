@@ -156,6 +156,7 @@ func (c *Client) createGUI() *tview.Application {
 			pages.SwitchToPage("badConnection")
 		} else {
 			// On success the user is moved to the chat screen
+			Log.Println("Successful connection")
 			pages.SwitchToPage("spotify")
 
 			// Binds the input bar to send messages to the server on "Enter" keypress

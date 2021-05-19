@@ -21,7 +21,7 @@ func (c *Client) readPump() {
 			Log.Println(fmt.Sprintf("read: %s", err.Error()))
 
 			// Causes disconnect handling to occur
-			c.done <- struct{}{}
+			c.notifyDone()
 
 			return
 		}
@@ -121,9 +121,11 @@ func (c *Client) buildMsg(sections []string) (ws.Message, error) {
 	// Processes client side opcodes
 	switch op {
 	case "EXIT":
-		c.done <- struct{}{}
+		Log.Println("Sending struct to done channel due to EXIT opcode")
+		c.notifyDone()
 	case "QUIT":
-		c.done <- struct{}{}
+		Log.Println("Sending struct to done channel due to QUIT opcode")
+		c.notifyDone()
 	}
 	return msg, nil
 }

@@ -63,24 +63,39 @@ func (c *Client) connect() error {
 
 // Close the client's websocket connection to the server
 func (c *Client) disconnect() error {
+	Log.Println("Closing websocket connection")
 	err := c.conn.Close()
 	if err != nil {
 		return err
 	}
+	Log.Println("Websocket connection closed")
 	return nil
+}
+
+// Sends an empty struct to the done channel to cause a shutdown
+func (c *Client) notifyDone() {
+	select {
+	case c.done <- struct{}{}:
+	default:
+		Log.Println("Done channel full. Discarding value")
+	}
 }
 
 // Wait for client to stop waiting for read messages (signified by
 // closing of done channel) or due to an external interrupt i.e. Ctrl+C
 func (c *Client) handleShutdown() {
 	defer func() {
-		c.disconnect()
 		c.done = make(chan struct{})
+		err := c.disconnect()
+		if err != nil {
+			Log.Println("Error closing websocket conn: " + err.Error())
+		}
 	}()
 
 	select {
 	// Manual shutdown by user or through (unexpected) closed websocket connection
 	case <-c.done:
+		Log.Println("Manual shutdown / Websocket err")
 		// Clean up the old text boxes
 		gCtx.users.Clear().SetText("USERS")
 		gCtx.chatlog.Clear()
@@ -91,6 +106,7 @@ func (c *Client) handleShutdown() {
 		return
 	// Shutdown through interrupt
 	case <-c.interrupt:
+		Log.Println("Shutdown through interrupt")
 		// Cleanly close the connection by sending a close message and then waiting (with timeout) for the server to close the connection.
 		err := c.conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 		if err != nil {
