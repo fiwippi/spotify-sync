@@ -16,17 +16,24 @@ func (c *Client) sendRequest(r *ws.Request, endpoint string) error {
 		return err
 	}
 
-	resp, err := http.Post((&url.URL{Scheme: "http", Host: c.url.Host}).String()+endpoint, "application/json", bytes.NewBuffer(payload))
+	scheme := "http"
+	if useSSL {
+		scheme = "https"
+	}
+
+	resp, err := http.Post((&url.URL{Scheme: scheme, Host: c.url.Host}).String()+endpoint, "application/json", bytes.NewBuffer(payload))
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
+	Log.Println("Response received")
 
 	var response = new(ws.Response)
 	err = json.NewDecoder(resp.Body).Decode(response)
 	if err != nil {
 		return err
 	}
+	Log.Printf("Response decoded: %+v\n", response)
 
 	if !response.Success {
 		return errors.New(response.Error)

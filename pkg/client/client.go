@@ -26,7 +26,7 @@ func NewClient() *Client {
 	signal.Notify(interrupt, os.Interrupt)
 
 	return &Client{
-		done: make(chan struct{}),
+		done:      make(chan struct{}),
 		interrupt: interrupt,
 	}
 }
@@ -42,7 +42,12 @@ func (c *Client) Run() error {
 
 // Changes the address the client will attempt to connect to via websocket
 func (c *Client) changeAddress(addr string) {
-	c.url = url.URL{Scheme: "ws", Host: addr, Path: "/shared"}
+	scheme := "ws"
+	if useSSL {
+		scheme = "wss"
+	}
+
+	c.url = url.URL{Scheme: scheme, Host: addr, Path: "/shared"}
 }
 
 // Dials the shared connection and connects to the sync server

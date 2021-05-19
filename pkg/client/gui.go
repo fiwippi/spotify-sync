@@ -6,14 +6,16 @@ import (
 	"sync"
 )
 
+var useSSL bool
+
 var gMtx = sync.Mutex{} // Mutex used to sync the gui (mainly for writing to the textview)
 var gCtx *guiCtx        // Gui context used by the client (to avoid passing it around everywhere)
 
 // Gui context used by the client
 type guiCtx struct {
 	chatlog, users *tview.TextView
-	pages *tview.Pages
-	app *tview.Application
+	pages          *tview.Pages
+	app            *tview.Application
 }
 
 // Writes text to text log
@@ -98,10 +100,19 @@ func (c *Client) createGUI() *tview.Application {
 	var sK, aK string
 
 	form := tview.NewForm().
-		AddInputField("Username:", "", 20, nil, func(text string) {username = text; details.Username = text}).
-		AddInputField("Password:", "", 20, nil, func(text string) {password = text; details.Password = password}).
-		AddInputField("Address:", "", 20, nil, func(text string) {address = text; details.Address = text; c.changeAddress(address)}).
-		AddInputField("Server Key:", "", 20, nil, func(text string) {sK = text; details.ServerKey = sK})
+		AddInputField("Username:", "", 20, nil, func(text string) { username = text; details.Username = text }).
+		AddInputField("Password:", "", 20, nil, func(text string) { password = text; details.Password = password }).
+		AddInputField("Address:", "", 20, nil, func(text string) { address = text; details.Address = text; c.changeAddress(address) }).
+		AddInputField("Server Key:", "", 20, nil, func(text string) { sK = text; details.ServerKey = sK }).
+		AddCheckbox("Use SSL:", true, func(checked bool) {
+			useSSL = checked
+			if checked {
+				details.UseSSL = "true"
+			} else {
+				details.UseSSL = "false"
+			}
+			c.changeAddress(address)
+		})
 	form.GetFormItemByLabel("Server Key:").(*tview.InputField).SetMaskCharacter('*')
 	form.GetFormItemByLabel("Password:").(*tview.InputField).SetMaskCharacter('*')
 	form.SetBorder(true)
@@ -109,13 +120,25 @@ func (c *Client) createGUI() *tview.Application {
 	// Loads up the details from the config.json file
 	var inputField *tview.InputField
 	inputField = form.GetFormItemByLabel("Username:").(*tview.InputField)
-	if details.Username != "" {inputField.SetText(details.Username)}
+	if details.Username != "" {
+		inputField.SetText(details.Username)
+	}
 	inputField = form.GetFormItemByLabel("Password:").(*tview.InputField)
-	if details.Password != "" {inputField.SetText(details.Password)}
+	if details.Password != "" {
+		inputField.SetText(details.Password)
+	}
 	inputField = form.GetFormItemByLabel("Address:").(*tview.InputField)
-	if details.Address != "" {inputField.SetText(details.Address)}
+	if details.Address != "" {
+		inputField.SetText(details.Address)
+	}
 	inputField = form.GetFormItemByLabel("Server Key:").(*tview.InputField)
-	if details.ServerKey != "" {inputField.SetText(details.ServerKey)}
+	if details.ServerKey != "" {
+		inputField.SetText(details.ServerKey)
+	}
+	inputCheckbox := form.GetFormItemByLabel("Use SSL:").(*tview.Checkbox)
+	if details.UseSSL == "false" {
+		inputCheckbox.SetChecked(false)
+	}
 
 	// Button for connecting the user to the server
 	form.AddButton("Connect", func() {
@@ -149,9 +172,9 @@ func (c *Client) createGUI() *tview.Application {
 				chatlog: text,
 				users:   users,
 				app:     app,
-				pages: pages,
+				pages:   pages,
 			}
-			
+
 			// Listen for incoming messages
 			go c.readPump()
 
@@ -179,26 +202,38 @@ func (c *Client) createGUI() *tview.Application {
 
 	// Button for quitting the app
 	form.AddButton("Quit", func() {
+		// Save the config when quitting
+		err := saveConfig(details)
+		if err != nil {
+			Log.Println("Failed to save config:", err)
+		}
+
 		app.Stop()
 	})
 
 	// Screen for admin functionality
 	adminForm := tview.NewForm().
-		AddInputField("Current Name:", "", 20, nil, func(text string) {username = text; details.Username = text}).
-		AddInputField("New Password (if applicable):", "", 20, nil, func(text string) {password = text; details.Password = password}).
-		AddInputField("New Name (if applicable):", "", 20, nil, func(text string) {newname = text}).
-		AddInputField("Admin Key:", "", 20, nil, func(text string) {aK = text; details.AdminKey = aK}).
-		AddInputField("Address:", "", 20, nil, func(text string) {address = text; details.Address = text; c.changeAddress(address)})
+		AddInputField("Current Name:", "", 20, nil, func(text string) { username = text; details.Username = text }).
+		AddInputField("New Password (if applicable):", "", 20, nil, func(text string) { password = text; details.Password = password }).
+		AddInputField("New Name (if applicable):", "", 20, nil, func(text string) { newname = text }).
+		AddInputField("Admin Key:", "", 20, nil, func(text string) { aK = text; details.AdminKey = aK }).
+		AddInputField("Address:", "", 20, nil, func(text string) { address = text; details.Address = text; c.changeAddress(address) })
 	adminForm.GetFormItemByLabel("Admin Key:").(*tview.InputField).SetMaskCharacter('*')
 	adminForm.GetFormItemByLabel("New Password (if applicable):").(*tview.InputField).SetMaskCharacter('*')
 	adminForm.SetBorder(true)
 
 	inputField = adminForm.GetFormItemByLabel("Current Name:").(*tview.InputField)
-	if details.Username != "" {inputField.SetText(details.Username)}
+	if details.Username != "" {
+		inputField.SetText(details.Username)
+	}
 	inputField = adminForm.GetFormItemByLabel("Address:").(*tview.InputField)
-	if details.Address != "" {inputField.SetText(details.Address)}
+	if details.Address != "" {
+		inputField.SetText(details.Address)
+	}
 	inputField = adminForm.GetFormItemByLabel("Admin Key:").(*tview.InputField)
-	if details.AdminKey != "" {inputField.SetText(details.AdminKey)}
+	if details.AdminKey != "" {
+		inputField.SetText(details.AdminKey)
+	}
 
 	// Button for going back to the login page
 	adminForm.AddButton("Go Back", func() {
@@ -228,7 +263,6 @@ func (c *Client) createGUI() *tview.Application {
 			pages.SwitchToPage("requestSucceded")
 		}
 	})
-
 
 	// Add each page to the pages object to enable switching to different screens
 	pages.AddPage("login", form, true, true)

@@ -8,5 +8,7 @@ services:
       - ./data:/data:rw
     ports:
       - 8096:8096
+    environment:
+      - SERVER_MODE=release
     env_file:
       - .env

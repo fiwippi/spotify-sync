@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	bolt "go.etcd.io/bbolt"
@@ -12,6 +13,8 @@ import (
 	"syscall"
 	"time"
 )
+
+// TODO add dashboard to manage server instead of admin routes
 
 // Server key allows users basic access to server functions, i.e. creating accounts
 // Admin key allows deeper access to server functions, i.e. deleting accounts, updating account data
@@ -98,9 +101,14 @@ func setupServer(sK, aK, id, secret, redirect, port string) (*http.Server, error
 }
 
 // Run a server
-func Run(sK, aK, id, secret, redirect, port string, refresh time.Duration) error {
+func Run(sK, aK, id, secret, redirect, port, mode string, refresh time.Duration) error {
 	// Set the refresh
 	syncRefresh = refresh
+
+	if mode != "release" && mode != "debug" {
+		return errors.New("invalid mode, must be \"release\" or \"debug\"")
+	}
+	gin.SetMode(mode)
 
 	// Create the server
 	srv, err := setupServer(sK, aK, id, secret, redirect, port)

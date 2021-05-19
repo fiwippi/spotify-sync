@@ -11,6 +11,22 @@ go get github.com/fiwippi/spotify-sync
 Then `cd` into the directory and `make`
 
 ## Usage
+```console
+$ ./spotify_sync --help
+Usage:
+   [command]
+
+Available Commands:
+  client      Runs the client
+  help        Help about any command
+  server      Runs the server
+  view        Views the server database
+
+Flags:
+  -h, --help   help for this command
+
+Use " [command] --help" for more information about a command.
+```
 ### Server
 The server performs the syncing operations on the client's connected to it. Once clients are connected with the server 
 they can create their own spotify sessions which other users can join. Some `env` variables must be specified 
@@ -38,15 +54,18 @@ ADMIN_KEY=abcdefghijklmnopqrstuvwxyz123456
 # port numbers should also be specified, e.g. if you used port forwarding
 # without port 80. 
 DOMAIN=localhost:8096
+# Whether the redirect url should be http or https
+USE_SSL=true
 # The port for the server to run on locally
 PORT=8096
+# Run the server in Gin debug or release mode
+SERVER_MODE=debug
 ```
 **Additionally**, inside the spotify developer portal for your application, you should add your domain route followed
 by `/spotify-callback` as a valid callback URL, for example: `localhost:8096/spotify-callback`. This is used by the
 server to create a spotify client which can control the user playback.
 
-To see the data stored within the database the `spotify_sync_view` binary should be used, it should be in the same 
-directory as the created `spotify.db` file. The db file can only be used by one program at once so the server should not run at the same time. 
+To see the data stored within the database run `spotify_sync view`. The db file can only be used by one program at once so the server should not run at the same time.
 
 ### Clients
 Clients can perform certain operations by typing in the chat box provided after they connect to the server,
@@ -62,6 +81,10 @@ MSG = Send a message to other users in the same session e.g. "msg,change the son
 The client also provided functionality to connect with the server and create, update or delete user accounts. 
 This is authenticated with the Server and Admin keys where the Server Key can only authenticate the creation of
 accounts whereas the Admin Key can authenticate creation, deletion or updating. 
+
+## Docker
+- If running the provided docker image, the port will always be 8096.
+
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.

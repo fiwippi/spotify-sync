@@ -1,12 +1,19 @@
-package main
+package cmd
 
 import (
 	"github.com/fiwippi/spotify-sync/pkg/client"
-	"log"
+	"github.com/spf13/cobra"
 )
 
-func main() {
-	if err := client.NewClient().Run(); err != nil {
-		log.Fatal(err)
-	}
+func init() {
+	rootCmd.AddCommand(clientCmd)
+}
+
+var clientCmd = &cobra.Command{
+	Use:   "client",
+	Short: "Runs the client",
+	Long:  `Runs the client to connect to the spotify server in the terminal`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return client.NewClient().Run()
+	},
 }

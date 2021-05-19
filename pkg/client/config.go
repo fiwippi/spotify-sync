@@ -15,6 +15,7 @@ type Config struct {
 	Address   string `json:"address"`
 	ServerKey string `json:"server_key"`
 	AdminKey  string `json:"admin_key"`
+	UseSSL    string `json:"use_ssl"`
 }
 
 // Saves the config file
