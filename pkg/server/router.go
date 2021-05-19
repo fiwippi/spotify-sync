@@ -32,11 +32,11 @@ func authGenerated() gin.HandlerFunc {
 }
 
 // Creates the server object
-func setupServer(sK, aK, id, secret, redirect, port string) (*http.Server, error) {
+func setupServer(sK, aK, id, secret, redirect, port, logLevel string) (*http.Server, error) {
 	var err error
 
 	// Create the logger
-	Log, err = createLogger()
+	Log, err = createLogger(logLevel)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func setupServer(sK, aK, id, secret, redirect, port string) (*http.Server, error
 }
 
 // Run a server
-func Run(sK, aK, id, secret, redirect, port, mode string, refresh time.Duration) error {
+func Run(sK, aK, id, secret, redirect, port, mode, logLevel string, refresh time.Duration) error {
 	// Set the refresh
 	syncRefresh = refresh
 
@@ -111,7 +111,7 @@ func Run(sK, aK, id, secret, redirect, port, mode string, refresh time.Duration)
 	gin.SetMode(mode)
 
 	// Create the server
-	srv, err := setupServer(sK, aK, id, secret, redirect, port)
+	srv, err := setupServer(sK, aK, id, secret, redirect, port, logLevel)
 	if err != nil {
 		return err
 	}

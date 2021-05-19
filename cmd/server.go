@@ -11,7 +11,17 @@ import (
 )
 
 var refresh time.Duration
-var id, secret, redirect, serverKey, adminKey, port, envPath, ssl, mode string
+var id, secret, redirect, serverKey, adminKey, port, envPath, ssl, mode, logLevel string
+
+var validLogLevels = map[string]bool{
+	"trace": true,
+	"debug": true,
+	"info":  true,
+	"warn":  true,
+	"error": true,
+	"fatal": true,
+	"panic": true,
+}
 
 func init() {
 	serverCmd.Flags().StringVar(&ssl, "ssl", "", "is the server running behind ssl (default true)")
@@ -19,6 +29,7 @@ func init() {
 	serverCmd.Flags().StringVarP(&port, "port", "p", "", "port to host the server on (default 8096)")
 	serverCmd.Flags().StringVarP(&envPath, "env-path", "e", ".env", "path to load env file from")
 	serverCmd.Flags().StringVarP(&mode, "mode", "m", "", "runs the server from available modes \"debug\", \"release\" (default \"debug\")")
+	serverCmd.Flags().StringVarP(&logLevel, "log-level", "l", "", "log level from \"trace\", \"debug\", \"info\", \"warn\", \"error\", \"fatal\", \"panic\" (default \"debug\")")
 	serverCmd.Flags().DurationVarP(&refresh, "refresh-interval", "r", 0, "how often should the server attempt to sync the session (default 10s)")
 
 	rootCmd.AddCommand(serverCmd)
@@ -86,7 +97,17 @@ var serverCmd = &cobra.Command{
 			}
 		}
 
-		fmt.Printf("Server running with config:\nredirect - %s\nport - %s\nrefresh - %s\nmode - %s\n", redirect, port, refresh, mode)
-		return server.Run(serverKey, adminKey, id, secret, redirect, port, mode, refresh)
+		if logLevel == "" {
+			if os.Getenv("SERVER_LOG_LEVEL") != "" {
+				logLevel = os.Getenv("SERVER_LOG_LEVEL")
+			} else {
+				logLevel = "debug"
+			}
+		} else if found, _ := validLogLevels[logLevel]; !found {
+			return errors.New("invalid log level, must be one of \"trace\", \"debug\", \"info\", \"warn\", \"error\", \"fatal\", \"panic\"")
+		}
+
+		fmt.Printf("Server running with config:\nredirect - %s\nport - %s\nrefresh - %s\nmode - %s\nlog level - %s\n", redirect, port, refresh, mode, logLevel)
+		return server.Run(serverKey, adminKey, id, secret, redirect, port, mode, logLevel, refresh)
 	},
 }
