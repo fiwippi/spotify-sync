@@ -9,6 +9,11 @@ func init() {
 	rootCmd.AddCommand(clientCmd)
 }
 
+// TODO ensure wss
+// TODO send no active device message to client instead of host
+// TODO unpause clients once host unpauses
+// TODO better errors for abnormal websocket connection
+
 var clientCmd = &cobra.Command{
 	Use:   "client",
 	Short: "Runs the client",

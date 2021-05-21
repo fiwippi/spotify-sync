@@ -42,9 +42,9 @@ func (c *Client) Run() error {
 
 // Changes the address the client will attempt to connect to via websocket
 func (c *Client) changeAddress(addr string) {
-	scheme := "ws"
-	if useSSL {
-		scheme = "wss"
+	scheme := "wss"
+	if !useSSL {
+		scheme = "ws"
 	}
 
 	c.url = url.URL{Scheme: scheme, Host: addr, Path: "/shared"}

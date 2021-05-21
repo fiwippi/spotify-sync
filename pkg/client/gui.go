@@ -124,13 +124,14 @@ func (c *Client) createGUI() *tview.Application {
 	if details.Password != "" {
 		inputField.SetText(details.Password)
 	}
-	inputField = form.GetFormItemByLabel("Address:").(*tview.InputField)
-	if details.Address != "" {
-		inputField.SetText(details.Address)
-	}
 	inputCheckbox := form.GetFormItemByLabel("Use SSL:").(*tview.Checkbox)
 	if details.UseSSL == "false" {
 		inputCheckbox.SetChecked(false)
+	}
+	inputField = form.GetFormItemByLabel("Address:").(*tview.InputField)
+	if details.Address != "" {
+		inputField.SetText(details.Address)
+		c.changeAddress(details.Address)
 	}
 
 	// Button for connecting the user to the server
